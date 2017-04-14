@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "captchaengine", "captchaengine\captchaengine.csproj", "{DA9713C5-88A9-4B28-9274-F3EB3343BCD7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Control", "Control\Control.csproj", "{B14D320A-0CB0-4A67-9164-5A6BBA0CDF97}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DA9713C5-88A9-4B28-9274-F3EB3343BCD7} = {DA9713C5-88A9-4B28-9274-F3EB3343BCD7}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA9713C5-88A9-4B28-9274-F3EB3343BCD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA9713C5-88A9-4B28-9274-F3EB3343BCD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA9713C5-88A9-4B28-9274-F3EB3343BCD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA9713C5-88A9-4B28-9274-F3EB3343BCD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B14D320A-0CB0-4A67-9164-5A6BBA0CDF97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B14D320A-0CB0-4A67-9164-5A6BBA0CDF97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B14D320A-0CB0-4A67-9164-5A6BBA0CDF97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B14D320A-0CB0-4A67-9164-5A6BBA0CDF97}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
