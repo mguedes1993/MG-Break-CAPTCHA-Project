@@ -186,5 +186,10 @@ namespace captchaengine
 
             return characters;
         }
+
+        public void ExtractFeatures()
+        {
+            
+        }
     }
 }
