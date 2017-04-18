@@ -54,6 +54,7 @@ namespace captchaengine
             
             var engineDecide = new MulticlassSupportVectorLearning<Linear>
             {
+                Learner = learner => new LinearDualCoordinateDescent<Linear>(),
                 ParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }
             }.Learn(dataList, labelList);
             engineDecide.Compress();
