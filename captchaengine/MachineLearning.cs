@@ -57,6 +57,7 @@ namespace captchaengine
                 Learner = learner => new LinearDualCoordinateDescent<Linear>(),
                 ParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }
             }.Learn(dataList, labelList);
+
             engineDecide.Compress();
             Tuple.Create(engineDecide, mapLabel).Save(@".\" + tribunal + ".dat");
         }
