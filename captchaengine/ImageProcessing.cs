@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Accord.Imaging.Converters;
@@ -8,19 +9,19 @@ using Accord.MachineLearning.VectorMachines;
 using Accord.Math;
 using Accord.Statistics.Kernels;
 
-namespace captchaengine
+namespace CaptchaEngine
 {
     internal class ImageProcessing
     {
-        public List<double[]> ExtractCharacters(Bitmap captchaImage, string tribunal = null, string color = null)
+        public double[][] ExtractCharacters(Bitmap captchaImage, string tribunal = null, string color = null)
         {
-            var methodToCall = this.GetType().GetMethod(tribunal.ToUpper());
+            var methodToCall = GetType().GetMethod(tribunal.ToUpper());
             return methodToCall.GetParameters().Length > 1
-                ? (List<double[]>) methodToCall.Invoke(this, new object[] {captchaImage, color})
-                : (List<double[]>) methodToCall.Invoke(this, new object[] {captchaImage});
+                ? (double[][]) methodToCall.Invoke(this, new object[] {captchaImage, color})
+                : (double[][]) methodToCall.Invoke(this, new object[] {captchaImage});
         }
 
-        public List<double[]> TRT_PJE(Bitmap captchaImage)
+        public double[][] TRT_PJE(Bitmap captchaImage)
         {
             var gs = new Grayscale(0, 0, 0);
             captchaImage = gs.Apply(captchaImage);
@@ -39,7 +40,7 @@ namespace captchaengine
                     {
                         if (tmpBytes[i, j] > 150)
                         {
-                            tmpBytes[i, j] = 255;
+                            tmpBytes[i, j] = 1;
                         }
                         else
                         {
@@ -50,10 +51,10 @@ namespace captchaengine
                 characters.Add(tmpBytes.Flatten().ToDouble());
             }
             
-            return characters;
+            return characters.ToArray();
         }
 
-        public List<double[]> TJ_ESAJ_COLOR(Bitmap captchaImage, string color=null)
+        public double[][] TJ_ESAJ_COLOR(Bitmap captchaImage, string color=null)
         {
             var imageToMatrix = new ImageToMatrix();
             var delimiters = new[] { 24, 51, 78, 105, 132, 159, 186, 213 };
@@ -76,14 +77,15 @@ namespace captchaengine
                         {
                             if (tempColors[i,j].Name == tempColor.Name)
                             {
-                                tempBytes[i, j] = 0;
+                                tempBytes[i, j] = 1;
                             }
                             else
                             {
-                                tempBytes[i, j] = 255;
+                                tempBytes[i, j] = 0;
                             }
                         }
                     }
+
                     characters.Add(tempBytes.Flatten().ToDouble());
                 }
             }
@@ -138,27 +140,29 @@ namespace captchaengine
                             {
                                 if (tempColors[i, j].Name == tempColor.Name)
                                 {
-                                    tempBytes[i, j] = 0;
+                                    tempBytes[i, j] = 1;
                                 }
                                 else
                                 {
-                                    tempBytes[i, j] = 255;
+                                    tempBytes[i, j] = 0;
                                 }
                             }
                         }
+
                         characters.Add(tempBytes.Flatten().ToDouble());
                     }
                 }
             }
 
-            return characters;
+            return characters.ToArray();
         }
 
-        public List<double[]> TJ_PJE(Bitmap captchaImage)
+        public double[][] TJ_PJE(Bitmap captchaImage)
         {
             var gs = new Grayscale(0, 0, 0);
-            captchaImage = gs.Apply(captchaImage);
             var imageToMatrix = new ImageToMatrix();
+
+            captchaImage = gs.Apply(captchaImage);
             var delimiters = new[] { 12, 28, 44, 60, 76, 92 };
             captchaImage = new Bitmap(captchaImage, new Size(120, 40));
             var characters = new List<double[]>();
@@ -173,7 +177,7 @@ namespace captchaengine
                     {
                         if (tmpBytes[i, j] > 190)
                         {
-                            tmpBytes[i, j] = 255;
+                            tmpBytes[i, j] = 1;
                         }
                         else
                         {
@@ -181,10 +185,142 @@ namespace captchaengine
                         }
                     }
                 }
+
                 characters.Add(tmpBytes.Flatten().ToDouble());
             }
 
-            return characters;
+            return characters.ToArray();
+        }
+
+        public double[][] TJRS_FISICO(Bitmap captchaImage)
+        {
+            var imageToMatrix = new ImageToMatrix();
+            var delimiters = new[] { 10, 35, 60, 85 };
+            captchaImage = new Bitmap(captchaImage, new Size(120, 40));
+            var characters = new List<double[]>();
+
+            foreach (var delimiter in delimiters)
+            {
+                var characterImg = captchaImage.Clone(new Rectangle(delimiter, 3, 25, 34), captchaImage.PixelFormat);
+                Color[,] imgColors;
+                double[,] imgBytes;
+                imageToMatrix.Convert(characterImg, out imgColors);
+                imageToMatrix.Convert(characterImg, out imgBytes);
+
+                for (int i = 3; i < imgBytes.GetLength(0) - 3; i++)
+                {
+                    for (int j = 3; j < imgBytes.GetLength(1) - 3; j++)
+                    {
+                        var r = imgColors[i, j].R;
+                        var g = imgColors[i, j].G;
+                        var b = imgColors[i, j].B;
+
+                        var toleranceIndexes = new[]
+                        {
+                            imgColors[ i-1 , j-1 ],
+                            imgColors[ i-1 , j ],
+                            imgColors[ i-1 , j+1 ],
+
+                            imgColors[ i , j-1 ],
+                            imgColors[ i , j+1 ],
+
+                            imgColors[ i+1 , j-1 ],
+                            imgColors[ i+1 , j ],
+                            imgColors[ i+1 , j+1 ]
+                        };
+
+                        var toleranceIndexes2 = new[]
+                        {
+                            imgColors[ i-3 , j-3 ],
+                            imgColors[ i-3 , j-2 ],
+                            imgColors[ i-3 , j-1 ],
+                            imgColors[ i-3 , j ],
+                            imgColors[ i-3 , j+1 ],
+                            imgColors[ i-3 , j+2 ],
+                            imgColors[ i-3 , j+3 ],
+
+                            imgColors[ i-2 , j-3 ],
+                            imgColors[ i-2 , j-2 ],
+                            imgColors[ i-2 , j-1 ],
+                            imgColors[ i-2 , j ],
+                            imgColors[ i-2 , j+1 ],
+                            imgColors[ i-2 , j+2 ],
+                            imgColors[ i-2 , j+3 ],
+
+                            imgColors[ i-1 , j-3 ],
+                            imgColors[ i-1 , j-2 ],
+                            imgColors[ i-1 , j-1 ],
+                            imgColors[ i-1 , j ],
+                            imgColors[ i-1 , j+1 ],
+                            imgColors[ i-1 , j+2 ],
+                            imgColors[ i-1 , j+3 ],
+
+                            imgColors[ i , j-3 ],
+                            imgColors[ i , j-2 ],
+                            imgColors[ i , j-1 ],
+                            imgColors[ i , j+1 ],
+                            imgColors[ i , j+2 ],
+                            imgColors[ i , j+3 ],
+
+                            imgColors[ i+1 , j-3 ],
+                            imgColors[ i+1 , j-2 ],
+                            imgColors[ i+1 , j-1 ],
+                            imgColors[ i+1 , j ],
+                            imgColors[ i+1 , j+1 ],
+                            imgColors[ i+1 , j+2 ],
+                            imgColors[ i+1 , j+3 ],
+
+                            imgColors[ i+2 , j-3 ],
+                            imgColors[ i+2 , j-2 ],
+                            imgColors[ i+2 , j-1 ],
+                            imgColors[ i+2 , j ],
+                            imgColors[ i+2 , j+1 ],
+                            imgColors[ i+2 , j+2 ],
+                            imgColors[ i+2 , j+3 ],
+
+                            imgColors[ i+3 , j-3 ],
+                            imgColors[ i+3 , j-2 ],
+                            imgColors[ i+3 , j-1 ],
+                            imgColors[ i+3 , j ],
+                            imgColors[ i+3 , j+1 ],
+                            imgColors[ i+3 , j+2 ],
+                            imgColors[ i+3 , j+3 ],
+                        };
+
+                        var ver = false;
+                        var cont = 0;
+
+                        foreach (var color in toleranceIndexes)
+                        {
+                            var tolerance = 25;
+                            if (color.R <= r + tolerance && color.R >= r - tolerance && color.G <= g + tolerance && color.G >= g - tolerance && color.B <= b + tolerance && color.B >= b - tolerance)
+                            {
+                                cont++;
+                            }
+                        }
+
+                        imgBytes[i, j] = Math.Pow(2, -(8 - cont));
+
+                        //if (cont >= 3)
+                        //{
+                        //    ver = true;
+                        //}
+
+                        //if (ver)
+                        //{
+                        //    imgBytes[i, j] = 1;
+                        //}
+                        //else
+                        //{
+                        //    imgBytes[i, j] = 0;
+                        //}
+                    }
+                }
+
+                characters.Add(imgBytes.Flatten());
+            }
+
+            return characters.ToArray();
         }
 
         public void ExtractFeatures()
