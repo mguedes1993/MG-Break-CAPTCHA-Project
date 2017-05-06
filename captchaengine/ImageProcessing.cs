@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using Accord.Imaging.Converters;
 using Accord.Imaging.Filters;
 using Accord.IO;
@@ -13,15 +14,15 @@ namespace CaptchaEngine
 {
     internal class ImageProcessing
     {
-        public double[][] ExtractCharacters(Bitmap captchaImage, string tribunal = null, string color = null)
+        public double[][] ExtractCharacters(Bitmap captchaImage, string court, string color = null)
         {
-            var methodToCall = GetType().GetMethod(tribunal.ToUpper());
+            var methodToCall = GetType().GetMethod(court.ToUpper(), BindingFlags.NonPublic | BindingFlags.Instance);
             return methodToCall.GetParameters().Length > 1
                 ? (double[][]) methodToCall.Invoke(this, new object[] {captchaImage, color})
                 : (double[][]) methodToCall.Invoke(this, new object[] {captchaImage});
         }
 
-        public double[][] TRT_PJE(Bitmap captchaImage)
+        private double[][] TRT_PJE(Bitmap captchaImage)
         {
             var gs = new Grayscale(0, 0, 0);
             captchaImage = gs.Apply(captchaImage);
@@ -54,7 +55,7 @@ namespace CaptchaEngine
             return characters.ToArray();
         }
 
-        public double[][] TJ_ESAJ_COLOR(Bitmap captchaImage, string color=null)
+        private double[][] TJ_ESAJ_COLOR(Bitmap captchaImage, string color=null)
         {
             var imageToMatrix = new ImageToMatrix();
             var delimiters = new[] { 24, 51, 78, 105, 132, 159, 186, 213 };
@@ -157,7 +158,7 @@ namespace CaptchaEngine
             return characters.ToArray();
         }
 
-        public double[][] TJ_PJE(Bitmap captchaImage)
+        private double[][] TJ_PJE(Bitmap captchaImage)
         {
             var gs = new Grayscale(0, 0, 0);
             var imageToMatrix = new ImageToMatrix();
@@ -192,7 +193,7 @@ namespace CaptchaEngine
             return characters.ToArray();
         }
 
-        public double[][] TJRS_FISICO(Bitmap captchaImage)
+        private double[][] TJRS_FISICO(Bitmap captchaImage)
         {
             var imageToMatrix = new ImageToMatrix();
             var delimiters = new[] { 10, 35, 60, 85 };
@@ -323,7 +324,7 @@ namespace CaptchaEngine
             return characters.ToArray();
         }
 
-        public void ExtractFeatures()
+        private void ExtractFeatures()
         {
             
         }
