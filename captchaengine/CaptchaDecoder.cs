@@ -21,6 +21,7 @@ namespace CaptchaEngine
         private readonly ImageProcessing _imageProcessing = new ImageProcessing();
 
         #region Machine Learning
+
         public void MachineLearningTraining(double[][][] data, string[] label, string court)
         {
             var countData = data.Length;
@@ -41,11 +42,11 @@ namespace CaptchaEngine
                     newLabel.Add(tmpLabel[j]);
                 }
             }
-            
+
             var engine = new MulticlassSupportVectorLearning<Linear>
             {
                 Learner = learner => new LinearDualCoordinateDescent<Linear>(),
-                ParallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }
+                ParallelOptions = new ParallelOptions {MaxDegreeOfParallelism = Environment.ProcessorCount}
             }.Learn(newData.ToArray(), newLabel.ToArray());
             engine.Compress();
             Tuple.Create(engine, mapLabel, newData[0].Length).Save(@".\MLengine_" + court + ".dat");
@@ -53,8 +54,12 @@ namespace CaptchaEngine
 
         public string MachineLearningPredict(string filePath, string court, string color = null)
         {
-            var engine = Serializer.Load<Tuple<MulticlassSupportVectorMachine<Linear>, char[], int>>(@".\MLengine_" + court + ".dat");
-            var characters = _imageProcessing.ExtractCharacters((Bitmap) Image.FromFile(filePath), court, color);
+            var engine =
+                Serializer.Load<Tuple<MulticlassSupportVectorMachine<Linear>, char[], int>>(
+                    @".\MLengine_" + court + ".dat");
+            var tmpImage = (Bitmap) Image.FromFile(filePath);
+            var characters = _imageProcessing.ExtractCharacters(tmpImage, court, color);
+            tmpImage.Dispose();
             for (var i = 0; i < characters.Length; i++)
             {
                 Array.Resize(ref characters[i], engine.Item3);
@@ -66,7 +71,9 @@ namespace CaptchaEngine
         {
             var countData = label.Length;
 
-            var engine = Serializer.Load<Tuple<MulticlassSupportVectorMachine<Linear>, char[], int>>(@".\MLengine_" + court + ".dat");
+            var engine =
+                Serializer.Load<Tuple<MulticlassSupportVectorMachine<Linear>, char[], int>>(
+                    @".\MLengine_" + court + ".dat");
 
             var newData = new List<double[]>();
             var newLabel = new List<int>();
@@ -86,9 +93,11 @@ namespace CaptchaEngine
 
             return 1 - new ZeroOneLoss(newLabel.ToArray()).Loss(engine.Item1.Decide(newData.ToArray()));
         }
+
         #endregion
 
         #region Neural
+
         public void NeuralTraining(double[][][] data, string[] label)
         {
             var countData = label.Length;
@@ -114,14 +123,14 @@ namespace CaptchaEngine
             var nInputs = newData[0].Length;
             var nOutputs = mapLabel.Length;
 
-            var layers = new[] { nOutputs, nOutputs };
+            var layers = new[] {nOutputs, nOutputs};
 
             var neuralNetwork = new DeepBeliefNetwork(nInputs, layers);
             new GaussianWeights(neuralNetwork).Randomize();
             neuralNetwork.UpdateVisibleWeights();
-            
+
             var neuralLearningSupervised = new BackPropagationLearning(neuralNetwork); //Supervised Learning
-            
+
             var score = new List<double>();
             var count = 0;
             var stop = 0;
@@ -130,7 +139,7 @@ namespace CaptchaEngine
             {
                 neuralLearningSupervised.RunEpoch(newData.ToArray(), newLabel.ToArray());
 
-                if (count%5 == 0)
+                if (count % 5 == 0)
                 {
                     Tuple.Create(neuralNetwork, mapLabel, nInputs).Save(@".\NeuralEngine.dat");
                     score.Add(NeuralScore(data, label));
@@ -138,17 +147,17 @@ namespace CaptchaEngine
 
                 if (score.Last() > 0.90 || stop == 4)
                 {
-                    var errorData = NeuralErrorData(neuralNetwork, newData.ToArray(), newLabel.ToArray(), mapLabel);
+                    var errorData = NeuralErrorData(neuralNetwork, newData.ToArray(), newLabel.ToArray());
 
                     if (errorData.Item1.Length == 0) break;
 
-                    for (int i = 0; i < count * 5; i++)
+                    for (var i = 0; i < count * 5; i++)
                     {
                         neuralLearningSupervised.RunEpoch(errorData.Item1, errorData.Item2);
                     }
                 }
 
-                if (score.Count >= 50 && count%5 == 0)
+                if (score.Count >= 50 && count % 5 == 0)
                 {
                     var nChanges = score.GetRange(score.Count - 3, 3).ToArray().Distinct(t => t).Length;
 
@@ -171,18 +180,21 @@ namespace CaptchaEngine
         public string NeuralPredict(string filePath, string court, string color = null)
         {
             var engine = Serializer.Load<Tuple<DeepBeliefNetwork, char[], int>>(@".\NeuralEngine.dat");
-            var characters = _imageProcessing.ExtractCharacters((Bitmap)Image.FromFile(filePath), court, color);
+            var tmpImage = (Bitmap) Image.FromFile(filePath);
+            var characters = _imageProcessing.ExtractCharacters(tmpImage, court, color);
+            tmpImage.Dispose();
             for (var i = 0; i < characters.Length; i++)
             {
                 Array.Resize(ref characters[i], engine.Item3);
             }
-            return characters.Aggregate("", (current, i) => current + NeuralDoublesToLabel(engine.Item2, engine.Item1.Compute(i)));
+            return characters.Aggregate("",
+                (current, i) => current + NeuralDoublesToLabel(engine.Item2, engine.Item1.Compute(i)));
         }
 
         public double NeuralScore(double[][][] data, string[] label)
         {
             var countData = label.Length;
-            
+
             var neuralNetwork = Serializer.Load<Tuple<DeepBeliefNetwork, char[], int>>(@".\NeuralEngine.dat");
 
             var newData = new List<double[]>();
@@ -212,21 +224,13 @@ namespace CaptchaEngine
             return 1 - new ZeroOneLoss(newLabel.ToArray()).Loss(results.ToArray());
         }
 
-        private static Tuple<double[][], double[][]> NeuralErrorData(Network neuralNetwork, double[][] data, double[][] label, char[] mapLabel)
+        private static Tuple<double[][], double[][]> NeuralErrorData(Network neuralNetwork, double[][] data, double[][] label)
         {
             var errorData = new List<double[]>();
             var errorLabel = new List<double[]>();
-            for (var i = 2; i < data.Length-2; i++)
+            for (var i = 0; i < data.Length; i++)
             {
                 var resultDoubles = neuralNetwork.Compute(data[i]);
-
-                var t0 = mapLabel[Array.IndexOf(label[i-2], label[i-2].Max())];
-                var t1 = mapLabel[Array.IndexOf(label[i-1], label[i-1].Max())];
-                var t2 = mapLabel[Array.IndexOf(label[i], label[i].Max())];
-                var t3 = mapLabel[Array.IndexOf(label[i+1], label[i+1].Max())];
-                var t4 = mapLabel[Array.IndexOf(label[i+2], label[i+2].Max())];
-
-                var xxx = t0.ToString() + t1.ToString() + t2.ToString() + t3.ToString() + t4.ToString();
 
                 if (Array.IndexOf(resultDoubles, resultDoubles.Max()) != Array.IndexOf(label[i], label[i].Max()))
                 {
@@ -237,18 +241,22 @@ namespace CaptchaEngine
 
             return Tuple.Create(errorData.ToArray(), errorLabel.ToArray());
         }
+
         #endregion
 
         #region Tools
+
         public Tuple<double[][][], string[], string> LoadDataset(string dir, string court)
         {
-            var files = Directory.GetFiles(dir).Where(file => !string.IsNullOrEmpty(file) && (file.EndsWith("png") || file.EndsWith("jpeg") || file.EndsWith("jpg"))).ToArray();
+            var files = Directory.GetFiles(dir)
+                .Where(file => !string.IsNullOrEmpty(file) &&
+                               (file.EndsWith("png") || file.EndsWith("jpeg") || file.EndsWith("jpg"))).ToArray();
             var data = new double[files.Length][][];
             var label = new string[files.Length];
 
             Parallel.For(0, files.Length, i =>
             {
-                var tmpImage = (Bitmap)Image.FromFile(files[i]);
+                var tmpImage = (Bitmap) Image.FromFile(files[i]);
                 data[i] = _imageProcessing.ExtractCharacters(tmpImage, court);
                 tmpImage.Dispose();
                 label[i] = Path.GetFileName(files[i]).Split('-')[0];
@@ -262,9 +270,9 @@ namespace CaptchaEngine
             //[samples] [number of characters] [data]
             var maxSize = (from i in data from j in i select j.Length).Max();
 
-            for (var j = 0; j < data.Length; j++)//Sample
+            for (var j = 0; j < data.Length; j++) //Sample
             {
-                for (var k = 0; k < data[j].Length; k++)//Characters
+                for (var k = 0; k < data[j].Length; k++) //Characters
                 {
                     if (data[j][k].Length != maxSize)
                     {
@@ -279,7 +287,7 @@ namespace CaptchaEngine
         private static double[][] BuildNeuralLabelDoublesMap(char[] mapLabel)
         {
             var mapLabelNeural = new List<double[]>();
-            
+
             for (var i = 0; i < mapLabel.Length; i++)
             {
                 var tmpDoubles = new double[mapLabel.Length];
@@ -300,15 +308,20 @@ namespace CaptchaEngine
             return mapLabelNeural.ToArray();
         }
 
-        private static double[][] NeuralLabelToDoubles(char[] mapLabel, double[][] mapLabelNeural, string label) => LabelToInt(mapLabel, label).Select(li => mapLabelNeural[li]).ToArray();
+        private static double[][] NeuralLabelToDoubles(char[] mapLabel, double[][] mapLabelNeural, string label) =>
+            LabelToInt(mapLabel, label).Select(li => mapLabelNeural[li]).ToArray();
 
-        private static string NeuralDoublesToLabel(char[] mapLabel, double[] label) => IntToLabel(mapLabel, new[]{ Array.IndexOf(label, label.Max())});
-        
+        private static string NeuralDoublesToLabel(char[] mapLabel, double[] label) => IntToLabel(mapLabel,
+            new[] {Array.IndexOf(label, label.Max())});
+
         private static char[] BuildLabelIntMap(string[] label) => string.Join("", label).ToCharArray().Distinct(l => l);
 
-        private static int[] LabelToInt(char[] mapLabel, string label) => label.ToCharArray().Select(l => Array.IndexOf(mapLabel, l)).ToArray();
+        private static int[] LabelToInt(char[] mapLabel, string label) => label.ToCharArray()
+            .Select(l => Array.IndexOf(mapLabel, l)).ToArray();
 
-        private static string IntToLabel(char[] mapLabel, int[] intLabel) => intLabel.Aggregate("", (current, i) => current + mapLabel[i]);
+        private static string IntToLabel(char[] mapLabel, int[] intLabel) => intLabel.Aggregate("",
+            (current, i) => current + mapLabel[i]);
+
         #endregion
     }
 }

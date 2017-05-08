@@ -34,7 +34,9 @@ namespace CaptchaEngine
             foreach (var delimiter in delimiters)
             {
                 byte[,] tmpBytes;
-                imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 10, Width = 16, Height = 23 }, captchaImage.PixelFormat), out tmpBytes);
+                imageToMatrix.Convert(
+                    captchaImage.Clone(new Rectangle {X = delimiter, Y = 10, Width = 16, Height = 23},
+                        captchaImage.PixelFormat), out tmpBytes);
                 for (var i = 0; i < tmpBytes.GetLength(0); i++)
                 {
                     for (var j = 0; j < tmpBytes.GetLength(1); j++)
@@ -51,32 +53,37 @@ namespace CaptchaEngine
                 }
                 characters.Add(tmpBytes.Flatten().ToDouble());
             }
-            
+
             return characters.ToArray();
         }
 
-        private double[][] TJ_ESAJ_COLOR(Bitmap captchaImage, string color=null)
+        private double[][] TJ_ESAJ_COLOR(Bitmap captchaImage, string color)
         {
             var imageToMatrix = new ImageToMatrix();
-            var delimiters = new[] { 24, 51, 78, 105, 132, 159, 186, 213 };
+            var delimiters = new[] {24, 51, 78, 105, 132, 159, 186, 213};
             captchaImage = new Bitmap(captchaImage, new Size(260, 51));
             var characters = new List<double[]>();
-            
+
             if (string.IsNullOrEmpty(color))
             {
                 foreach (var delimiter in delimiters)
                 {
                     byte[,] tempBytes;
                     Color[,] tempColors;
-                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 8, Width = 27, Height = 29 }, captchaImage.PixelFormat), out tempBytes);
-                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 8, Width = 27, Height = 29 }, captchaImage.PixelFormat), out tempColors);
-                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
+                    imageToMatrix.Convert(
+                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
+                            captchaImage.PixelFormat), out tempBytes);
+                    imageToMatrix.Convert(
+                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
+                            captchaImage.PixelFormat), out tempColors);
+                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name)
+                        .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
 
                     for (var i = 0; i < tempBytes.GetLength(0); i++)
                     {
                         for (var j = 0; j < tempBytes.GetLength(1); j++)
                         {
-                            if (tempColors[i,j].Name == tempColor.Name)
+                            if (tempColors[i, j].Name == tempColor.Name)
                             {
                                 tempBytes[i, j] = 1;
                             }
@@ -92,15 +99,19 @@ namespace CaptchaEngine
             }
             else
             {
-                var engineColor = Serializer.Load<MulticlassSupportVectorMachine<Linear>>(@".\color.dat");
-                
+                var engineColor = Serializer.Load<MulticlassSupportVectorMachine<Linear>>(Assembly
+                    .GetExecutingAssembly().GetManifestResourceStream("captchaengine.color.dat"));
+
                 foreach (var delimiter in delimiters)
                 {
                     Color[,] tempColors;
-                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 8, Width = 27, Height = 29 }, captchaImage.PixelFormat), out tempColors);
-                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
+                    imageToMatrix.Convert(
+                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
+                            captchaImage.PixelFormat), out tempColors);
+                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name)
+                        .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
 
-                    var intColor = engineColor.Decide(new double[]{tempColor.R, tempColor.G, tempColor.B});
+                    var intColor = engineColor.Decide(new double[] {tempColor.R, tempColor.G, tempColor.B});
                     var stringColor = "";
 
                     switch (intColor)
@@ -126,14 +137,20 @@ namespace CaptchaEngine
                         case 6:
                             stringColor = "preto";
                             break;
-                     }
+                    }
 
                     if (stringColor == color.ToLower())
                     {
                         byte[,] tempBytes;
-                        imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 8, Width = 27, Height = 29 }, captchaImage.PixelFormat), out tempBytes);
-                        imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 8, Width = 27, Height = 29 }, captchaImage.PixelFormat), out tempColors);
-                        tempColor = (tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0))).ElementAt(1);
+                        imageToMatrix.Convert(
+                            captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
+                                captchaImage.PixelFormat), out tempBytes);
+                        imageToMatrix.Convert(
+                            captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
+                                captchaImage.PixelFormat), out tempColors);
+                        tempColor = (tempColors.Cast<Color>().GroupBy(c => c.Name)
+                                .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)))
+                            .ElementAt(1);
 
                         for (var i = 0; i < tempBytes.GetLength(0); i++)
                         {
@@ -164,14 +181,16 @@ namespace CaptchaEngine
             var imageToMatrix = new ImageToMatrix();
 
             captchaImage = gs.Apply(captchaImage);
-            var delimiters = new[] { 12, 28, 44, 60, 76, 92 };
+            var delimiters = new[] {12, 28, 44, 60, 76, 92};
             captchaImage = new Bitmap(captchaImage, new Size(120, 40));
             var characters = new List<double[]>();
 
             foreach (var delimiter in delimiters)
             {
                 byte[,] tmpBytes;
-                imageToMatrix.Convert(captchaImage.Clone(new Rectangle { X = delimiter, Y = 11, Width = 16, Height = 24 }, captchaImage.PixelFormat), out tmpBytes);
+                imageToMatrix.Convert(
+                    captchaImage.Clone(new Rectangle {X = delimiter, Y = 11, Width = 16, Height = 24},
+                        captchaImage.PixelFormat), out tmpBytes);
                 for (var i = 0; i < tmpBytes.GetLength(0); i++)
                 {
                     for (var j = 0; j < tmpBytes.GetLength(1); j++)
@@ -196,7 +215,7 @@ namespace CaptchaEngine
         private double[][] TJRS_FISICO(Bitmap captchaImage)
         {
             var imageToMatrix = new ImageToMatrix();
-            var delimiters = new[] { 10, 35, 60, 85 };
+            var delimiters = new[] {10, 35, 60, 85};
             captchaImage = new Bitmap(captchaImage, new Size(120, 40));
             var characters = new List<double[]>();
 
@@ -208,9 +227,9 @@ namespace CaptchaEngine
                 imageToMatrix.Convert(characterImg, out imgColors);
                 imageToMatrix.Convert(characterImg, out imgBytes);
 
-                for (int i = 3; i < imgBytes.GetLength(0) - 3; i++)
+                for (var i = 3; i < imgBytes.GetLength(0) - 3; i++)
                 {
-                    for (int j = 3; j < imgBytes.GetLength(1) - 3; j++)
+                    for (var j = 3; j < imgBytes.GetLength(1) - 3; j++)
                     {
                         var r = imgColors[i, j].R;
                         var g = imgColors[i, j].G;
@@ -218,74 +237,74 @@ namespace CaptchaEngine
 
                         var toleranceIndexes = new[]
                         {
-                            imgColors[ i-1 , j-1 ],
-                            imgColors[ i-1 , j ],
-                            imgColors[ i-1 , j+1 ],
+                            imgColors[i - 1, j - 1],
+                            imgColors[i - 1, j],
+                            imgColors[i - 1, j + 1],
 
-                            imgColors[ i , j-1 ],
-                            imgColors[ i , j+1 ],
+                            imgColors[i, j - 1],
+                            imgColors[i, j + 1],
 
-                            imgColors[ i+1 , j-1 ],
-                            imgColors[ i+1 , j ],
-                            imgColors[ i+1 , j+1 ]
+                            imgColors[i + 1, j - 1],
+                            imgColors[i + 1, j],
+                            imgColors[i + 1, j + 1]
                         };
 
                         var toleranceIndexes2 = new[]
                         {
-                            imgColors[ i-3 , j-3 ],
-                            imgColors[ i-3 , j-2 ],
-                            imgColors[ i-3 , j-1 ],
-                            imgColors[ i-3 , j ],
-                            imgColors[ i-3 , j+1 ],
-                            imgColors[ i-3 , j+2 ],
-                            imgColors[ i-3 , j+3 ],
+                            imgColors[i - 3, j - 3],
+                            imgColors[i - 3, j - 2],
+                            imgColors[i - 3, j - 1],
+                            imgColors[i - 3, j],
+                            imgColors[i - 3, j + 1],
+                            imgColors[i - 3, j + 2],
+                            imgColors[i - 3, j + 3],
 
-                            imgColors[ i-2 , j-3 ],
-                            imgColors[ i-2 , j-2 ],
-                            imgColors[ i-2 , j-1 ],
-                            imgColors[ i-2 , j ],
-                            imgColors[ i-2 , j+1 ],
-                            imgColors[ i-2 , j+2 ],
-                            imgColors[ i-2 , j+3 ],
+                            imgColors[i - 2, j - 3],
+                            imgColors[i - 2, j - 2],
+                            imgColors[i - 2, j - 1],
+                            imgColors[i - 2, j],
+                            imgColors[i - 2, j + 1],
+                            imgColors[i - 2, j + 2],
+                            imgColors[i - 2, j + 3],
 
-                            imgColors[ i-1 , j-3 ],
-                            imgColors[ i-1 , j-2 ],
-                            imgColors[ i-1 , j-1 ],
-                            imgColors[ i-1 , j ],
-                            imgColors[ i-1 , j+1 ],
-                            imgColors[ i-1 , j+2 ],
-                            imgColors[ i-1 , j+3 ],
+                            imgColors[i - 1, j - 3],
+                            imgColors[i - 1, j - 2],
+                            imgColors[i - 1, j - 1],
+                            imgColors[i - 1, j],
+                            imgColors[i - 1, j + 1],
+                            imgColors[i - 1, j + 2],
+                            imgColors[i - 1, j + 3],
 
-                            imgColors[ i , j-3 ],
-                            imgColors[ i , j-2 ],
-                            imgColors[ i , j-1 ],
-                            imgColors[ i , j+1 ],
-                            imgColors[ i , j+2 ],
-                            imgColors[ i , j+3 ],
+                            imgColors[i, j - 3],
+                            imgColors[i, j - 2],
+                            imgColors[i, j - 1],
+                            imgColors[i, j + 1],
+                            imgColors[i, j + 2],
+                            imgColors[i, j + 3],
 
-                            imgColors[ i+1 , j-3 ],
-                            imgColors[ i+1 , j-2 ],
-                            imgColors[ i+1 , j-1 ],
-                            imgColors[ i+1 , j ],
-                            imgColors[ i+1 , j+1 ],
-                            imgColors[ i+1 , j+2 ],
-                            imgColors[ i+1 , j+3 ],
+                            imgColors[i + 1, j - 3],
+                            imgColors[i + 1, j - 2],
+                            imgColors[i + 1, j - 1],
+                            imgColors[i + 1, j],
+                            imgColors[i + 1, j + 1],
+                            imgColors[i + 1, j + 2],
+                            imgColors[i + 1, j + 3],
 
-                            imgColors[ i+2 , j-3 ],
-                            imgColors[ i+2 , j-2 ],
-                            imgColors[ i+2 , j-1 ],
-                            imgColors[ i+2 , j ],
-                            imgColors[ i+2 , j+1 ],
-                            imgColors[ i+2 , j+2 ],
-                            imgColors[ i+2 , j+3 ],
+                            imgColors[i + 2, j - 3],
+                            imgColors[i + 2, j - 2],
+                            imgColors[i + 2, j - 1],
+                            imgColors[i + 2, j],
+                            imgColors[i + 2, j + 1],
+                            imgColors[i + 2, j + 2],
+                            imgColors[i + 2, j + 3],
 
-                            imgColors[ i+3 , j-3 ],
-                            imgColors[ i+3 , j-2 ],
-                            imgColors[ i+3 , j-1 ],
-                            imgColors[ i+3 , j ],
-                            imgColors[ i+3 , j+1 ],
-                            imgColors[ i+3 , j+2 ],
-                            imgColors[ i+3 , j+3 ],
+                            imgColors[i + 3, j - 3],
+                            imgColors[i + 3, j - 2],
+                            imgColors[i + 3, j - 1],
+                            imgColors[i + 3, j],
+                            imgColors[i + 3, j + 1],
+                            imgColors[i + 3, j + 2],
+                            imgColors[i + 3, j + 3]
                         };
 
                         var ver = false;
@@ -294,7 +313,8 @@ namespace CaptchaEngine
                         foreach (var color in toleranceIndexes)
                         {
                             var tolerance = 25;
-                            if (color.R <= r + tolerance && color.R >= r - tolerance && color.G <= g + tolerance && color.G >= g - tolerance && color.B <= b + tolerance && color.B >= b - tolerance)
+                            if (color.R <= r + tolerance && color.R >= r - tolerance && color.G <= g + tolerance &&
+                                color.G >= g - tolerance && color.B <= b + tolerance && color.B >= b - tolerance)
                             {
                                 cont++;
                             }
@@ -326,7 +346,7 @@ namespace CaptchaEngine
 
         private void ExtractFeatures()
         {
-            
+
         }
     }
 }
