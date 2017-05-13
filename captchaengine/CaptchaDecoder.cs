@@ -187,8 +187,7 @@ namespace CaptchaEngine
             {
                 Array.Resize(ref characters[i], engine.Item3);
             }
-            return characters.Aggregate("",
-                (current, i) => current + NeuralDoublesToLabel(engine.Item2, engine.Item1.Compute(i)));
+            return characters.Aggregate("", (current, i) => current + NeuralDoublesToLabel(engine.Item2, engine.Item1.Compute(i)));
         }
 
         public double NeuralScore(double[][][] data, string[] label)
@@ -250,7 +249,7 @@ namespace CaptchaEngine
         {
             var files = Directory.GetFiles(dir)
                 .Where(file => !string.IsNullOrEmpty(file) &&
-                               (file.EndsWith("png") || file.EndsWith("jpeg") || file.EndsWith("jpg"))).ToArray();
+                               (file.EndsWith("png") || file.EndsWith("jpeg") || file.EndsWith("jpg") || file.EndsWith("jfif"))).ToArray();
             var data = new double[files.Length][][];
             var label = new string[files.Length];
 
@@ -272,7 +271,7 @@ namespace CaptchaEngine
 
             for (var j = 0; j < data.Length; j++) //Sample
             {
-                for (var k = 0; k < data[j].Length; k++) //Characters
+                for (var k = 0; k < data[j].Length; k++) //Character
                 {
                     if (data[j][k].Length != maxSize)
                     {

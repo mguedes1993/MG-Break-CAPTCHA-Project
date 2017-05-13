@@ -21,7 +21,7 @@ namespace Control
 
         private void buttonDecide_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Filter = @"Images | *.jpeg;*.jpg;*.png";
+            openFileDialog1.Filter = @"Images | *.jpeg;*.jpg;*.jfif;*.png";
             openFileDialog1.ShowDialog();
             pictureBox1.ImageLocation = openFileDialog1.FileName;
             var result = _ce.NeuralPredict(openFileDialog1.FileName, comboBox1.SelectedItem.ToString(), textBoxColor.Text);
