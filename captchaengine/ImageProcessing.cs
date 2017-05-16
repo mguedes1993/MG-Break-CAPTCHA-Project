@@ -34,9 +34,7 @@ namespace CaptchaEngine
             foreach (var delimiter in delimiters)
             {
                 byte[,] tmpBytes;
-                imageToMatrix.Convert(
-                    captchaImage.Clone(new Rectangle {X = delimiter, Y = 10, Width = 16, Height = 23},
-                        captchaImage.PixelFormat), out tmpBytes);
+                imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 10, Width = 16, Height = 23}, captchaImage.PixelFormat), out tmpBytes);
                 for (var i = 0; i < tmpBytes.GetLength(0); i++)
                 {
                     for (var j = 0; j < tmpBytes.GetLength(1); j++)
@@ -70,14 +68,9 @@ namespace CaptchaEngine
                 {
                     byte[,] tempBytes;
                     Color[,] tempColors;
-                    imageToMatrix.Convert(
-                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
-                            captchaImage.PixelFormat), out tempBytes);
-                    imageToMatrix.Convert(
-                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
-                            captchaImage.PixelFormat), out tempColors);
-                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name)
-                        .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
+                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29}, captchaImage.PixelFormat), out tempBytes);
+                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29}, captchaImage.PixelFormat), out tempColors);
+                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
 
                     for (var i = 0; i < tempBytes.GetLength(0); i++)
                     {
@@ -99,17 +92,13 @@ namespace CaptchaEngine
             }
             else
             {
-                var engineColor = Serializer.Load<MulticlassSupportVectorMachine<Linear>>(Assembly
-                    .GetExecutingAssembly().GetManifestResourceStream("captchaengine.color.dat"));
+                var engineColor = Serializer.Load<MulticlassSupportVectorMachine<Linear>>(Assembly.GetExecutingAssembly().GetManifestResourceStream("captchaengine.color.dat"));
 
                 foreach (var delimiter in delimiters)
                 {
                     Color[,] tempColors;
-                    imageToMatrix.Convert(
-                        captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
-                            captchaImage.PixelFormat), out tempColors);
-                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name)
-                        .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
+                    imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29}, captchaImage.PixelFormat), out tempColors);
+                    var tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
 
                     var intColor = engineColor.Decide(new double[] {tempColor.R, tempColor.G, tempColor.B});
                     var stringColor = "";
@@ -142,15 +131,9 @@ namespace CaptchaEngine
                     if (stringColor == color.ToLower())
                     {
                         byte[,] tempBytes;
-                        imageToMatrix.Convert(
-                            captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
-                                captchaImage.PixelFormat), out tempBytes);
-                        imageToMatrix.Convert(
-                            captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29},
-                                captchaImage.PixelFormat), out tempColors);
-                        tempColor = (tempColors.Cast<Color>().GroupBy(c => c.Name)
-                                .OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)))
-                            .ElementAt(1);
+                        imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29}, captchaImage.PixelFormat), out tempBytes);
+                        imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 8, Width = 27, Height = 29}, captchaImage.PixelFormat), out tempColors);
+                        tempColor = tempColors.Cast<Color>().GroupBy(c => c.Name).OrderByDescending(cGroup => cGroup.Count()).Select(cGroup => cGroup.ElementAt(0)).ElementAt(1);
 
                         for (var i = 0; i < tempBytes.GetLength(0); i++)
                         {
@@ -188,9 +171,7 @@ namespace CaptchaEngine
             foreach (var delimiter in delimiters)
             {
                 byte[,] tmpBytes;
-                imageToMatrix.Convert(
-                    captchaImage.Clone(new Rectangle {X = delimiter, Y = 11, Width = 16, Height = 24},
-                        captchaImage.PixelFormat), out tmpBytes);
+                imageToMatrix.Convert(captchaImage.Clone(new Rectangle {X = delimiter, Y = 11, Width = 16, Height = 24}, captchaImage.PixelFormat), out tmpBytes);
                 for (var i = 0; i < tmpBytes.GetLength(0); i++)
                 {
                     for (var j = 0; j < tmpBytes.GetLength(1); j++)
