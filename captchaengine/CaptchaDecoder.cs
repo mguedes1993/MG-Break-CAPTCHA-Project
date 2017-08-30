@@ -137,7 +137,7 @@ namespace CaptchaEngine
 
             while (stop < 5)
             {
-                neuralLearningSupervised.RunEpoch(newData.ToArray(), newLabel.ToArray());
+                var x = neuralLearningSupervised.RunEpoch(newData.ToArray(), newLabel.ToArray());
 
                 if (count % 5 == 0)
                 {
@@ -147,11 +147,11 @@ namespace CaptchaEngine
 
                 if (score.Last() > 0.90 || stop == 4)
                 {
-                    var errorData = NeuralErrorData(neuralNetwork, newData.ToArray(), newLabel.ToArray());
+                    var errorData = NeuralErrorData(neuralNetwork, newData.ToArray(), newLabel.ToArray(), mapLabel);
 
                     if (errorData.Item1.Length == 0) break;
 
-                    for (var i = 0; i < count * 5; i++)
+                    for (var i = 0; i < count * score.Count; i++)
                     {
                         neuralLearningSupervised.RunEpoch(errorData.Item1, errorData.Item2);
                     }
@@ -223,13 +223,21 @@ namespace CaptchaEngine
             return 1 - new ZeroOneLoss(newLabel.ToArray()).Loss(results.ToArray());
         }
 
-        private static Tuple<double[][], double[][]> NeuralErrorData(Network neuralNetwork, double[][] data, double[][] label)
+        private static Tuple<double[][], double[][]> NeuralErrorData(Network neuralNetwork, double[][] data, double[][] label, char[] c)
         {
             var errorData = new List<double[]>();
             var errorLabel = new List<double[]>();
-            for (var i = 0; i < data.Length; i++)
+            for (var i = 2; i < data.Length-2; i++)
             {
                 var resultDoubles = neuralNetwork.Compute(data[i]);
+
+                //var y1 = c[Array.IndexOf(label[i-2], label[i-2].Max())];
+                //var y2 = c[Array.IndexOf(label[i-1], label[i-1].Max())];
+                //var y3 = c[Array.IndexOf(label[i], label[i].Max())];
+                //var y4 = c[Array.IndexOf(label[i+1], label[i+1].Max())];
+                //var y5 = c[Array.IndexOf(label[i+2], label[i+2].Max())];
+
+                //var ver = y1.ToString() + y2 + y3 + y4 + y5;
 
                 if (Array.IndexOf(resultDoubles, resultDoubles.Max()) != Array.IndexOf(label[i], label[i].Max()))
                 {
@@ -242,14 +250,12 @@ namespace CaptchaEngine
         }
 
         #endregion
-
+        
         #region Tools
 
         public Tuple<double[][][], string[], string> LoadDataset(string dir, string court)
         {
-            var files = Directory.GetFiles(dir)
-                .Where(file => !string.IsNullOrEmpty(file) &&
-                               (file.EndsWith("png") || file.EndsWith("jpeg") || file.EndsWith("jpg") || file.EndsWith("jfif"))).ToArray();
+            var files = Directory.GetFiles(dir).Where(file => !string.IsNullOrEmpty(file) && (file.EndsWith(".png") || file.EndsWith(".jpeg") || file.EndsWith(".jpg") || file.EndsWith(".jfif"))).ToArray();
             var data = new double[files.Length][][];
             var label = new string[files.Length];
 
@@ -307,19 +313,15 @@ namespace CaptchaEngine
             return mapLabelNeural.ToArray();
         }
 
-        private static double[][] NeuralLabelToDoubles(char[] mapLabel, double[][] mapLabelNeural, string label) =>
-            LabelToInt(mapLabel, label).Select(li => mapLabelNeural[li]).ToArray();
+        private static double[][] NeuralLabelToDoubles(char[] mapLabel, double[][] mapLabelNeural, string label) => LabelToInt(mapLabel, label).Select(li => mapLabelNeural[li]).ToArray();
 
-        private static string NeuralDoublesToLabel(char[] mapLabel, double[] label) => IntToLabel(mapLabel,
-            new[] {Array.IndexOf(label, label.Max())});
+        private static string NeuralDoublesToLabel(char[] mapLabel, double[] label) => IntToLabel(mapLabel, new[] {Array.IndexOf(label, label.Max())});
 
         private static char[] BuildLabelIntMap(string[] label) => string.Join("", label).ToCharArray().Distinct(l => l);
 
-        private static int[] LabelToInt(char[] mapLabel, string label) => label.ToCharArray()
-            .Select(l => Array.IndexOf(mapLabel, l)).ToArray();
+        private static int[] LabelToInt(char[] mapLabel, string label) => label.ToCharArray().Select(l => Array.IndexOf(mapLabel, l)).ToArray();
 
-        private static string IntToLabel(char[] mapLabel, int[] intLabel) => intLabel.Aggregate("",
-            (current, i) => current + mapLabel[i]);
+        private static string IntToLabel(char[] mapLabel, int[] intLabel) => intLabel.Aggregate("", (current, i) => current + mapLabel[i]);
 
         #endregion
     }

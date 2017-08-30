@@ -61,7 +61,7 @@ namespace Control
             Array.Copy(data_TJ_ESAJ_COLOR.Item2, 0, allLabel, data_TJ_PJE.Item2.Length + data_TRT_PJE.Item2.Length, data_TJ_ESAJ_COLOR.Item2.Length);
 
             var normalizedData = CaptchaDecoder.NormalizeDataset(allData);
-            
+
             _ce.NeuralTraining(normalizedData, allLabel);
         }
     }

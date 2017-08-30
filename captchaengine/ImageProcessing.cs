@@ -288,7 +288,7 @@ namespace CaptchaEngine
                             imgColors[i + 3, j + 3]
                         };
 
-                        var ver = false;
+                        //var ver = false;
                         var cont = 0;
 
                         foreach (var color in toleranceIndexes)
